@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>수포자인 내가 삼각함수로 외계인을 물리치는 건에 대하여</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@700;900&family=Orbit&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        body { font-family: 'Orbit', sans-serif; background-color: #0f172a; color: white; overflow-x: hidden; touch-action: pan-y; }
+        .novel-font { font-family: 'Noto Serif KR', serif; }
+        .input-box { background-color: #1e293b; border: 1px solid #475569; color: #38bdf8; text-align: center; font-size: 1.25rem; font-weight: bold; border-radius: 0.5rem; width: 100%; padding: 0.5rem; outline: none; transition: border-color 0.2s; }
+        @media (min-width: 1024px) { .input-box { font-size: 1.5rem; } }
+        .input-box:focus { border-color: #38bdf8; box-shadow: 0 0 10px rgba(56, 189, 248, 0.5); }
+        .btn-func { background-color: #334155; color: #cbd5e1; border: 2px solid #475569; border-radius: 0.5rem; padding: 0.5rem 1rem; cursor: pointer; transition: all 0.2s; font-weight: bold; font-size: 1.1rem; }
+        .btn-func.active { background-color: #0284c7; color: white; border-color: #38bdf8; box-shadow: 0 0 10px rgba(56, 189, 248, 0.5); }
+        canvas { background: radial-gradient(circle at center, #1e1b4b 0%, #020617 100%); border-radius: 0.5rem; box-shadow: 0 0 20px rgba(0, 0, 0, 0.8); }
+    </style>
+</head>
+<body class="h-screen w-screen flex flex-col p-2 lg:p-4 relative">
+
+    <!-- Start Screen -->
+    <div id="startScreen" class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-[#0f172a] px-4">
+        
+        <div class="relative mb-6 lg:mb-8 group">
+            <!-- 금빛 후광 효과 -->
+            <div class="absolute inset-0 bg-gradient-to-r from-amber-400 to-rose-500 rounded-xl blur-lg opacity-40 group-hover:opacity-70 transition duration-500"></div>
+            <!-- 일러스트 이미지 (에러 시 플레이스홀더 대체) -->
+            <img src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=400&auto=format&fit=crop" 
+                 onerror="this.src='https://placehold.co/300x400/0f172a/fbbf24?text=Math+Magic'" 
+                 alt="웹소설 표지" 
+                 class="relative w-40 h-56 md:w-56 md:h-80 object-cover rounded-xl border-2 border-amber-500/40 shadow-2xl">
+        </div>
+
+        <h1 class="text-4xl md:text-6xl lg:text-7xl font-black novel-font mb-10 lg:mb-16 text-center leading-tight tracking-tight bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-500 text-transparent bg-clip-text drop-shadow-[0_0_15px_rgba(251,191,36,0.5)]">
+            수포자인 내가<br>삼각함수로 외계인을<br>물리치는 건에 대하여
+        </h1>
+        <button onclick="startGame()" class="bg-gradient-to-r from-slate-700 to-slate-800 border-2 border-slate-500 hover:border-amber-400 hover:from-slate-600 hover:to-slate-700 text-white novel-font text-xl md:text-3xl py-3 px-10 md:py-4 md:px-16 rounded-full transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_10px_20px_rgba(251,191,36,0.3)]">
+            제 1 화 읽기
+        </button>
+    </div>
+
+    <!-- Header -->
+    <header class="flex-col md:flex-row justify-between items-center mb-2 lg:mb-4 hidden gap-2" id="gameHeader">
+        <h1 class="text-xl lg:text-3xl font-bold novel-font text-sky-400 text-center md:text-left break-keep">🚀 수포자인 내가 삼각함수로 외계인을 물리치는 건에 대하여</h1>
+        <div class="text-lg lg:text-xl font-bold bg-slate-800 px-4 py-1 lg:px-6 lg:py-2 rounded-full border border-slate-600 whitespace-nowrap">
+            스테이지: <span id="levelDisplay" class="text-yellow-400">1</span> / 10
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="flex-col lg:flex-row flex-1 gap-4 lg:gap-6 h-full min-h-0 hidden pb-4 lg:pb-0" id="gameContent">
+        
+        <!-- Game Canvas Area -->
+        <div class="w-full lg:flex-1 relative flex flex-col rounded-xl overflow-hidden border-2 border-slate-700 bg-black min-h-[45vh] lg:min-h-0 shrink-0 lg:shrink">
+            <div class="flex-1 w-full relative" id="canvasContainer">
+                <canvas id="gameCanvas" class="absolute top-0 left-0 w-full h-full"></canvas>
+            </div>
+            
+            <div id="messageOverlay" class="absolute inset-0 bg-black/80 flex flex-col items-center justify-center hidden z-10">
+                <h2 id="messageTitle" class="text-4xl lg:text-6xl font-bold mb-4 tracking-widest text-center novel-font"></h2>
+                <div id="endingIcon" class="text-7xl lg:text-9xl mb-8 hidden">🏆</div>
+                <button id="nextLevelBtn" class="bg-sky-500 hover:bg-sky-400 text-white font-bold py-3 px-8 lg:py-4 lg:px-10 rounded-full text-xl lg:text-2xl transition-all shadow-[0_0_20px_rgba(14,165,233,0.6)] hidden mt-4 lg:mt-8" onclick="nextLevel()">NEXT LEVEL</button>
+                <button id="retryBtn" class="bg-rose-500 hover:bg-rose-400 text-white font-bold py-3 px-8 lg:py-4 lg:px-10 rounded-full text-xl lg:text-2xl transition-all shadow-[0_0_20px_rgba(244,63,94,0.6)] hidden mt-4 lg:mt-8" onclick="retryLevel()">RETRY</button>
+            </div>
+        </div>
+
+        <!-- Control Panel -->
+        <div class="w-full lg:w-[28rem] bg-slate-800 border-2 border-slate-700 rounded-xl p-4 lg:p-6 flex flex-col shadow-2xl shrink-0">
+            <div class="mb-4 lg:mb-6 flex gap-2">
+                <button class="btn-func active flex-1" id="btnSin" onclick="setFunction('sin')">sin (x)</button>
+                <button class="btn-func flex-1" id="btnCos" onclick="setFunction('cos')">cos (x)</button>
+            </div>
+
+            <div class="bg-slate-900 border border-slate-700 rounded-lg p-3 lg:p-5 mb-4 lg:mb-6 text-center shadow-inner overflow-x-auto whitespace-nowrap">
+                <div class="text-slate-400 text-xs lg:text-sm mb-1 lg:mb-2 tracking-widest novel-font" id="generalFormDisplay">[ 기본형: y = a sin(b(x - cπ)) + d ]</div>
+                <div id="equationDisplay" class="text-xl lg:text-2xl font-bold text-emerald-400 tracking-wider inline-block">
+                    y = <span id="eqA">1</span> <span id="eqFunc">sin</span>(<span id="eqB">1</span>(x - <span id="eqC">0</span>π)) + <span id="eqD">0</span>
+                </div>
+            </div>
+
+            <div class="space-y-3 lg:space-y-5 mb-4 lg:mb-6 flex-1">
+                <div class="flex items-center gap-3 lg:gap-4">
+                    <div class="w-12 h-12 lg:w-14 lg:h-14 bg-slate-700 text-slate-300 flex items-center justify-center rounded-lg font-bold text-xl lg:text-2xl">a</div>
+                    <div class="flex-1"><input type="number" id="inputA" class="input-box" step="0.5" value="1" oninput="updateEquation()"></div>
+                </div>
+                <div class="flex items-center gap-3 lg:gap-4">
+                    <div class="w-12 h-12 lg:w-14 lg:h-14 bg-slate-700 text-slate-300 flex items-center justify-center rounded-lg font-bold text-xl lg:text-2xl">b</div>
+                    <div class="flex-1"><input type="number" id="inputB" class="input-box" step="0.5" value="1" oninput="updateEquation()"></div>
+                </div>
+                <div class="flex items-center gap-3 lg:gap-4">
+                    <div class="w-12 h-12 lg:w-14 lg:h-14 bg-slate-700 text-slate-300 flex items-center justify-center rounded-lg font-bold text-xl lg:text-2xl">c</div>
+                    <div class="flex-1 relative flex items-center">
+                        <input type="number" id="inputC" class="input-box" step="0.25" value="0" oninput="updateEquation()">
+                        <span class="absolute right-4 text-slate-400 font-bold text-base lg:text-lg">π</span>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3 lg:gap-4">
+                    <div class="w-12 h-12 lg:w-14 lg:h-14 bg-slate-700 text-slate-300 flex items-center justify-center rounded-lg font-bold text-xl lg:text-2xl">d</div>
+                    <div class="flex-1"><input type="number" id="inputD" class="input-box" step="0.5" value="0" oninput="updateEquation()"></div>
+                </div>
+            </div>
+
+            <button id="fireBtn" onclick="fireLaser()" class="w-full bg-gradient-to-r from-red-600 to-rose-700 hover:from-red-500 hover:to-rose-600 text-white font-bold py-4 lg:py-5 rounded-xl text-2xl lg:text-3xl shadow-[0_0_20px_rgba(225,29,72,0.5)] transition-all transform hover:scale-[1.02] active:scale-95 tracking-widest border-2 border-red-400">
+                FIRE !
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const container = document.getElementById('canvasContainer');
+
+        let currentLevel = 1;
+        let funcType = 'sin';
+        let A = 1, B = 1, C = 0, D = 0;
+        let isFiring = false;
+        let animationId;
+        let laserCurrentX = 0;
+        const laserSpeed = 0.04; 
+
+        const mathMinX = -0.5 * Math.PI;
+        const mathMaxX = 5.5 * Math.PI;
+        const mathMinY = -5;
+        const mathMaxY = 5;
+
+        // ★ 새로운 반을 위한 완벽하게 재설계된 1~10단계 맵 데이터 (Ver 3.0) ★
+        const levels = [
+            // 1단계 (답: sin, 1, 1, 0, 0) - 건드리지 않아도 통과!
+            { target: { x: 2 * Math.PI, y: 0, r: 0.8 }, obstacles: [] },
+            // 2단계 (답: sin, 1, 1, 0, 2) - sin(x)는 벽에 박힘
+            { target: { x: 2.5 * Math.PI, y: 3, r: 0.8 }, obstacles: [{ x: 1 * Math.PI, y: -5, w: 1 * Math.PI, h: 5.5 }] },
+            // 3단계 (답: sin, 0.5, 1, 0, 1) - 좁은 틈 통과
+            { target: { x: 3.5 * Math.PI, y: 0.5, r: 0.8 }, obstacles: [{ x: 1.5 * Math.PI, y: 2, w: 1 * Math.PI, h: 3 }, { x: 1.5 * Math.PI, y: -5, w: 1 * Math.PI, h: 5 }] },
+            // 4단계 (답: cos, 2, 0.5, 0, 1) - 주파수를 늘려야 함
+            { target: { x: 4 * Math.PI, y: 3, r: 0.8 }, obstacles: [{ x: 1.5 * Math.PI, y: 0.5, w: 1 * Math.PI, h: 4.5 }] },
+            // 5단계 (답: sin, 2, 2, 0, 0) - 짧고 날카로운 파동
+            { target: { x: 2.25 * Math.PI, y: 2, r: 0.8 }, obstacles: [{ x: 0.8 * Math.PI, y: -0.5, w: 0.4 * Math.PI, h: 5.5 }, { x: 1.3 * Math.PI, y: -5, w: 0.4 * Math.PI, h: 6 }] },
+            // 6단계 (답: cos, 1.5, 1, 0, -1) - 위아래 장애물 엇갈림
+            { target: { x: 4 * Math.PI, y: 0.5, r: 0.8 }, obstacles: [{ x: 1.5 * Math.PI, y: -5, w: 1 * Math.PI, h: 4 }, { x: 2.5 * Math.PI, y: -1, w: 1 * Math.PI, h: 6 }] },
+            // 7단계 (답: sin, 2, 1, 0.5, 1) - C 이동의 중요성
+            { target: { x: 3 * Math.PI, y: 3, r: 0.8 }, obstacles: [{ x: 1.8 * Math.PI, y: 0, w: 0.4 * Math.PI, h: 5 }, { x: 2.7 * Math.PI, y: -5, w: 0.4 * Math.PI, h: 7 }] },
+            // 8단계 (답: sin, 0.5, 2, 0, 2) - 얇고 빠른 파동
+            { target: { x: 4.25 * Math.PI, y: 2.5, r: 0.8 }, obstacles: [{ x: 1 * Math.PI, y: 3, w: 2 * Math.PI, h: 2 }, { x: 1 * Math.PI, y: -5, w: 2 * Math.PI, h: 6 }] },
+            // 9단계 (답: cos, 3, 0.5, 0.5, 0) - 거대한 궤도
+            { target: { x: 4.5 * Math.PI, y: 3, r: 0.8 }, obstacles: [{ x: 2 * Math.PI, y: -1, w: 1 * Math.PI, h: 6 }] },
+            // 10단계 (답: cos, 3, 2, 0, -1) - 최종 보스, 3연속 틈새
+            { target: { x: 3.5 * Math.PI, y: -4, r: 0.8 }, obstacles: [{ x: 0.8 * Math.PI, y: -5, w: 0.4 * Math.PI, h: 5 }, { x: 1.3 * Math.PI, y: -1, w: 0.4 * Math.PI, h: 6 }, { x: 1.8 * Math.PI, y: -5, w: 0.4 * Math.PI, h: 5 }] }
+        ];
+
+        function startGame() {
+            document.getElementById('startScreen').classList.add('hidden');
+            document.getElementById('gameHeader').classList.remove('hidden');
+            document.getElementById('gameHeader').classList.add('flex');
+            document.getElementById('gameContent').classList.remove('hidden');
+            document.getElementById('gameContent').classList.add('flex');
+            resizeCanvas();
+            updateEquation();
+        }
+
+        function resizeCanvas() {
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+            if(!isFiring) drawScene();
+        }
+        window.addEventListener('resize', resizeCanvas);
+
+        function setFunction(type) {
+            funcType = type;
+            document.getElementById('btnSin').classList.toggle('active', type === 'sin');
+            document.getElementById('btnCos').classList.toggle('active', type === 'cos');
+            document.getElementById('generalFormDisplay').innerText = `[ 기본형: y = a ${type}(b(x - cπ)) + d ]`;
+            updateEquation();
+        }
+
+        function updateEquation() {
+            A = parseFloat(document.getElementById('inputA').value) || 0;
+            B = parseFloat(document.getElementById('inputB').value) || 0;
+            C = parseFloat(document.getElementById('inputC').value) || 0;
+            D = parseFloat(document.getElementById('inputD').value) || 0;
+
+            let eqStr = `y = <span class="text-white">${A === 1 ? '' : A === -1 ? '-' : A}</span> ${funcType}(<span class="text-white">${B === 1 ? '' : B === -1 ? '-' : B}</span>x) ${D === 0 ? '' : D > 0 ? '+ <span class="text-white">' + D + '</span>' : '- <span class="text-white">' + Math.abs(D) + '</span>'}`;
+            
+            if (C !== 0) {
+                let cSign = C < 0 ? '+' : '-';
+                let cVal = Math.abs(C);
+                eqStr = `y = <span class="text-white">${A === 1 ? '' : A === -1 ? '-' : A}</span> ${funcType}(<span class="text-white">${B === 1 ? '' : B === -1 ? '-' : B}</span>(x ${cSign} <span class="text-white">${cVal}</span>π)) ${D === 0 ? '' : D > 0 ? '+ <span class="text-white">' + D + '</span>' : '- <span class="text-white">' + Math.abs(D) + '</span>'}`;
+            }
+            
+            document.getElementById('equationDisplay').innerHTML = eqStr.replace('y =  sin', 'y = sin').replace('y =  cos', 'y = cos');
+
+            if(!isFiring) {
+                laserCurrentX = 0;
+                drawScene(); 
+            }
+        }
+
+        function getScreenX(mathX) { return (mathX - mathMinX) * (canvas.width / (mathMaxX - mathMinX)); }
+        function getScreenY(mathY) { return canvas.height - ((mathY - mathMinY) * (canvas.height / (mathMaxY - mathMinY))); }
+        function calcY(x) { return funcType === 'sin' ? A * Math.sin(B * (x - C * Math.PI)) + D : A * Math.cos(B * (x - C * Math.PI)) + D; }
+        
+        function calcAngle(x) {
+            const h = 0.001;
+            const y1 = calcY(x);
+            const y2 = calcY(x + h);
+            const dx = getScreenX(x + h) - getScreenX(x);
+            const dy = getScreenY(y2) - getScreenY(y1);
+            return Math.atan2(dy, dx); 
+        }
+
+        function drawGrid() {
+            ctx.lineWidth = 1;
+            for (let y = mathMinY; y <= mathMaxY; y++) {
+                ctx.beginPath(); ctx.strokeStyle = y === 0 ? 'rgba(255, 255, 255, 0.4)' : 'rgba(255, 255, 255, 0.1)';
+                ctx.lineWidth = y === 0 ? 2 : 1; ctx.moveTo(getScreenX(mathMinX), getScreenY(y)); ctx.lineTo(getScreenX(mathMaxX), getScreenY(y)); ctx.stroke();
+                if (y !== 0) { ctx.fillStyle = 'rgba(255, 255, 255, 0.5)'; ctx.font = '12px Orbit'; ctx.fillText(y, getScreenX(0) - 20, getScreenY(y) + 4); }
+            }
+            for (let i = -1; i <= 10; i++) {
+                let x = i * (Math.PI / 2);
+                if (x < mathMinX || x > mathMaxX) continue;
+                ctx.beginPath(); ctx.strokeStyle = i === 0 ? 'rgba(255, 255, 255, 0.4)' : 'rgba(255, 255, 255, 0.1)';
+                ctx.lineWidth = i === 0 ? 2 : 1; ctx.moveTo(getScreenX(x), getScreenY(mathMinY)); ctx.lineTo(getScreenX(x), getScreenY(mathMaxY)); ctx.stroke();
+                let label = i === 0 ? '0' : i === 1 ? '0.5π' : i === 2 ? 'π' : `${i/2}π`;
+                if (label) { ctx.fillStyle = 'rgba(255, 255, 255, 0.7)'; ctx.font = '14px Orbit'; ctx.fillText(label, getScreenX(x) - 10, getScreenY(0) + 20); }
+            }
+        }
+
+        function drawObstacles() {
+            const level = levels[currentLevel - 1];
+            if (!level.obstacles) return;
+            level.obstacles.forEach(obs => {
+                const sx = getScreenX(obs.x), sy = getScreenY(obs.y + obs.h);
+                const sw = getScreenX(obs.x + obs.w) - sx, sh = getScreenY(obs.y) - sy;
+                ctx.fillStyle = '#334155'; ctx.fillRect(sx, sy, sw, sh);
+                ctx.strokeStyle = '#0ea5e9'; ctx.lineWidth = 2; ctx.strokeRect(sx, sy, sw, sh);
+                ctx.strokeStyle = '#1e293b'; ctx.lineWidth = 1; ctx.beginPath();
+                for(let i=10; i<sh; i+=20) { ctx.moveTo(sx, sy+i); ctx.lineTo(sx+sw, sy+i); }
+                for(let i=15; i<sw; i+=30) { ctx.moveTo(sx+i, sy); ctx.lineTo(sx+i, sy+sh); }
+                ctx.stroke();
+            });
+        }
+
+        function drawTarget() {
+            const target = levels[currentLevel - 1].target;
+            const sx = getScreenX(target.x), sy = getScreenY(target.y), sr = (getScreenX(target.r) - getScreenX(0));
+            const gradient = ctx.createRadialGradient(sx, sy, sr*0.5, sx, sy, sr);
+            gradient.addColorStop(0, 'rgba(168, 85, 247, 0.8)'); gradient.addColorStop(1, 'rgba(168, 85, 247, 0)');
+            ctx.beginPath(); ctx.arc(sx, sy, sr, 0, Math.PI * 2); ctx.fillStyle = gradient; ctx.fill();
+            
+            const fontSize = Math.max(20, sr); 
+            ctx.font = `${fontSize}px Arial`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('👾', sx, sy);
+            ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+        }
+
+        function drawTurret() {
+            const sx = getScreenX(0);
+            const sy = getScreenY(calcY(0));
+            const angle = calcAngle(0); 
+
+            ctx.save();
+            ctx.translate(sx, sy);
+            
+            ctx.fillStyle = '#475569';
+            ctx.beginPath(); ctx.arc(0, 0, 15, 0, Math.PI * 2); ctx.fill();
+            ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 3; ctx.stroke();
+
+            ctx.rotate(angle);
+            ctx.fillStyle = '#1e293b'; ctx.fillRect(0, -10, 35, 20); 
+            ctx.fillStyle = '#f59e0b'; ctx.fillRect(30, -12, 10, 24); 
+            
+            ctx.restore();
+        }
+
+        function drawScene() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawGrid(); drawObstacles(); drawTarget(); drawTurret();
+        }
+
+        function drawLaserTrail() {
+            if (laserCurrentX <= 0) return;
+            
+            ctx.beginPath(); 
+            ctx.lineWidth = 5; 
+            ctx.shadowBlur = 10; 
+            ctx.shadowColor = '#f97316';
+            
+            const gradient = ctx.createLinearGradient(getScreenX(0), getScreenY(calcY(0)), getScreenX(laserCurrentX), getScreenY(calcY(laserCurrentX)));
+            gradient.addColorStop(0, 'rgba(244, 63, 94, 0.2)'); 
+            gradient.addColorStop(1, 'rgba(251, 191, 36, 1)'); 
+            ctx.strokeStyle = gradient;
+
+            ctx.moveTo(getScreenX(0), getScreenY(calcY(0)));
+            for (let x = 0; x <= laserCurrentX; x += 0.05) { ctx.lineTo(getScreenX(x), getScreenY(calcY(x))); }
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+
+            const currentXScreen = getScreenX(laserCurrentX);
+            const currentYScreen = getScreenY(calcY(laserCurrentX));
+            const angle = calcAngle(laserCurrentX);
+
+            ctx.save();
+            ctx.translate(currentXScreen, currentYScreen);
+            ctx.rotate(angle + Math.PI/4); 
+            ctx.font = '24px Arial'; 
+            ctx.textAlign = 'center'; 
+            ctx.textBaseline = 'middle'; 
+            ctx.fillText('🚀', 0, 0);
+            ctx.restore();
+        }
+
+        function checkCollision(x, y) {
+            const level = levels[currentLevel - 1];
+            const dx = x - level.target.x, dy = y - level.target.y;
+            if (Math.sqrt(dx*dx + dy*dy) < level.target.r) return 'target';
+            for (let obs of level.obstacles) {
+                if (x >= obs.x && x <= obs.x + obs.w && y >= obs.y && y <= obs.y + obs.h) return 'obstacle';
+            }
+            return null;
+        }
+
+        function drawExplosion(x, y, emoji) {
+            const sx = getScreenX(x), sy = getScreenY(y);
+            ctx.font = '50px Arial'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(emoji, sx, sy);
+        }
+
+        function fireLaser() {
+            if (isFiring) return;
+            document.getElementById('messageOverlay').classList.add('hidden');
+            document.getElementById('nextLevelBtn').classList.add('hidden');
+            document.getElementById('retryBtn').classList.add('hidden');
+            document.getElementById('endingIcon').classList.add('hidden');
+            isFiring = true; laserCurrentX = 0;
+            
+            function animate() {
+                if (!isFiring) return;
+                drawScene(); drawLaserTrail();
+                const currentY = calcY(laserCurrentX);
+                const hit = checkCollision(laserCurrentX, currentY);
+
+                if (hit === 'obstacle') {
+                    drawExplosion(laserCurrentX, currentY, '💥');
+                    endTurn(false, "CRASHED");
+                    return;
+                } else if (hit === 'target') {
+                    drawExplosion(laserCurrentX, currentY, '✨');
+                    endTurn(true, "CLEAR");
+                    return;
+                }
+                laserCurrentX += laserSpeed;
+                if (laserCurrentX > mathMaxX) { endTurn(false, "MISS"); return; }
+                animationId = requestAnimationFrame(animate);
+            }
+            animate();
+        }
+
+        function triggerConfetti() {
+            var duration = 3000;
+            var end = Date.now() + duration;
+            (function frame() {
+                confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#fbbf24', '#f59e0b', '#38bdf8'] });
+                confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#fbbf24', '#f59e0b', '#38bdf8'] });
+                if (Date.now() < end) { requestAnimationFrame(frame); }
+            }());
+        }
+
+        function endTurn(success, statusStr) {
+            isFiring = false; cancelAnimationFrame(animationId);
+            const overlay = document.getElementById('messageOverlay');
+            const title = document.getElementById('messageTitle');
+            overlay.classList.remove('hidden');
+            
+            if (success) {
+                if (currentLevel < levels.length) {
+                    title.innerText = statusStr;
+                    title.className = "text-5xl lg:text-7xl font-bold mb-4 novel-font text-emerald-400";
+                    document.getElementById('nextLevelBtn').classList.remove('hidden');
+                } else {
+                    title.innerHTML = "수포자 탈출 성공!<br><span class='text-2xl lg:text-4xl mt-4 block text-slate-300'>모든 외계인을 물리쳤습니다.</span>";
+                    title.className = "text-4xl lg:text-6xl font-bold mb-4 novel-font text-yellow-400 leading-tight lg:leading-normal";
+                    document.getElementById('endingIcon').classList.remove('hidden');
+                    document.getElementById('retryBtn').innerText = "RESTART";
+                    document.getElementById('retryBtn').classList.remove('hidden');
+                    triggerConfetti();
+                    currentLevel = 0;
+                }
+            } else {
+                title.innerText = statusStr;
+                title.className = "text-5xl lg:text-7xl font-bold mb-4 novel-font text-rose-500";
+                document.getElementById('retryBtn').innerText = "RETRY";
+                document.getElementById('retryBtn').classList.remove('hidden');
+            }
+        }
+
+        function nextLevel() {
+            currentLevel++;
+            document.getElementById('levelDisplay').innerText = currentLevel;
+            resetTurn();
+        }
+
+        function retryLevel() {
+            if(currentLevel === 0) { currentLevel = 1; document.getElementById('levelDisplay').innerText = currentLevel; }
+            resetTurn();
+        }
+
+        function resetTurn() {
+            document.getElementById('messageOverlay').classList.add('hidden');
+            document.getElementById('nextLevelBtn').classList.add('hidden');
+            document.getElementById('retryBtn').classList.add('hidden');
+            document.getElementById('endingIcon').classList.add('hidden');
+            laserCurrentX = 0; drawScene();
+        }
+    </script>
+</body>
+</html>
